@@ -1,0 +1,52 @@
+name: WhatsApp Marketing Agent
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Runs exactly once every hour
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  check-site:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          python -m playwright install chromium
+          python -m playwright install-deps chromium
+          
+      - name: Run WhatsApp Bot
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          WA_API_TOKEN: ${{ secrets.WA_API_TOKEN }}
+        run: python whatsapp_agent.py
+
+      - name: Save Memory (Commit & Push)
+        run: |
+          git config user.name "WhatsApp Bot"
+          git config user.email "actions@github.com"
+          git add memory.json
+          git commit -m "Update memory: New movie broadcasted" || echo "No changes to commit"
+          git pull --rebase origin main
+          git push
+
+      - name: 🧹 Cleanup Old Runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 3
+          keep_minimum_runs: 10
