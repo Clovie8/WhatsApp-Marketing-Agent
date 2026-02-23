@@ -67,7 +67,8 @@ def generate_whatsapp_hype(raw_text):
 def send_whatsapp_broadcast(message_text):
     headers = {
         "Authorization": f"Bearer {WA_API_TOKEN}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Accept": "application/json"
     }
     payload = {
         "to": CHANNEL_ID,
