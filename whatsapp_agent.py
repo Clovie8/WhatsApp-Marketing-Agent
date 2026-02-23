@@ -26,8 +26,8 @@ def get_page_content(url, selector):
         page = browser.new_page()
         stealth_sync(page)
         try:
-            page.goto(url, wait_until="domcontentloaded", timeout=30000)
-            page.wait_for_selector(selector, timeout=15000)
+            page.goto(url, wait_until="domcontentloaded", timeout=60000)
+            page.wait_for_selector(selector, timeout=30000)
             elements = page.query_selector_all(selector)
             
             extracted_text = "\n".join([el.inner_text() for el in elements])
