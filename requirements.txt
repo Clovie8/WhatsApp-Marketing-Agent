@@ -4,3 +4,4 @@ beautifulsoup4==4.12.3
 google-genai==0.3.0
 requests==2.31.0
 tenacity==8.2.3
+setuptools
