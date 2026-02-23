@@ -27,6 +27,21 @@ def get_page_content(url, selector):
         stealth_sync(page)
         try:
             page.goto(url, wait_until="domcontentloaded", timeout=60000)
+
+            # --- NEW: CLOSE THE WHATSAPP POPUP ---
+            try:
+                # Look for common 'X' close button selectors for up to 5 seconds
+                close_button = page.locator("button.close, .close, [aria-label='Close'], [aria-label='close'], .modal-close")
+                close_button.first.click(timeout=5000)
+                logging.info("🧹 Closed the WhatsApp community popup!")
+                
+                # Wait 1 second for the fade-out animation to finish so it isn't in the screenshot
+                page.wait_for_timeout(1000) 
+            except Exception:
+                # If the popup isn't there, just ignore it and move on!
+                pass
+            # --------------------------------------
+            
             page.wait_for_selector(selector, timeout=30000)
             elements = page.query_selector_all(selector)
             
