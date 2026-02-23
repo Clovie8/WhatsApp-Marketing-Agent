@@ -1,7 +1,6 @@
 import os
 import json
 import time
-import hashlib
 import logging
 import requests
 import base64
@@ -15,7 +14,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 WA_API_TOKEN = os.environ.get("WA_API_TOKEN")
 
-# Replace this with your API Gateway URL and Channel ID
+# Whapi Configuration
 WA_API_URL = "https://gate.whapi.cloud/messages/image" 
 CHANNEL_ID = "120363405654722379@newsletter" 
 
@@ -32,10 +31,13 @@ def get_page_content(url, selector):
             page.wait_for_selector(selector, timeout=15000)
             elements = page.query_selector_all(selector)
             
-            # Grab the top 3 newest items to give Gemini context
-            extracted_text = "\n".join([el.inner_text() for el in elements[:3]])
+            # Grab all the text in the section
+            extracted_text = "\n".join([el.inner_text() for el in elements])
+            
+            # Take a picture of the entire section so all new movies are visible!
             if len(elements) > 0:
                elements[0].screenshot(path="movie.png")
+               
             return extracted_text
         except Exception as e:
             logging.error(f"Failed to scrape {url}: {e}")
@@ -43,20 +45,30 @@ def get_page_content(url, selector):
         finally:
             browser.close()
 
-def generate_whatsapp_hype(raw_text):
+def generate_whatsapp_hype(old_text, new_text):
     try:
         client = genai.Client(api_key=GEMINI_API_KEY)
+        # --- THE NEW PROMPT ---
         prompt = f"""
-        Act as the hype Social Media Manager for the streaming site TheOneMovies.com.
-        Based on this scraped website text, identify the VERY FIRST movie or TV show listed (this is the newest addition).
-        
-        Write a short, incredibly exciting WhatsApp channel broadcast announcing this new upload.
-        - Use emojis! 🍿🔥🎬
-        - Keep it punchy and easy to read on a phone.
-        - End the message telling them to go watch it right now on TheOneMovies.com!
+        Act as the professional Social Media Manager for the streaming site TheOneMovies.com.
 
-        Raw text:
-        {raw_text[:1500]}
+        I am going to give you the OLD text of the website, and the NEW text of the website.
+        Your job is to compare them, find ALL the completely NEW movies or shows that were just added, and write a WhatsApp broadcast announcing ONLY the new content.
+
+        For EACH new movie/show, you MUST extract and format these details in a clean list:
+        🎬 *Title:* (Name of the movie/show)
+        🎭 *Genre:* (e.g., Action, Horror)
+        📅 *Year:* (e.g., 2026)
+        🎙️ *Umusobanuzi:* (The translator name next to the 🎙️ icon. If not found, skip this line)
+
+        Write a professional, exciting intro. Then list the new content with the details above. Use emojis!
+        End the message telling them to watch it now on TheOneMovies.com.
+
+        OLD WEBSITE TEXT:
+        {old_text[:2500]}
+
+        NEW WEBSITE TEXT:
+        {new_text[:2500]}
         """
         response = client.models.generate_content(
             model='gemini-2.5-flash',
@@ -65,10 +77,9 @@ def generate_whatsapp_hype(raw_text):
         return response.text.strip()
     except Exception as e:
         logging.error(f"AI Brain failed: {e}")
-        return "🍿 New Content Alert! Head over to TheOneMovies.com right now to see the latest upload!"
+        return "🚨 MASSIVE UPLOAD ALERT! 🚨\n\nNew content just dropped with fresh translations! Head over to TheOneMovies.com right now to see the latest uploads!"
 
 def send_whatsapp_broadcast(message_text, image_path):
-    # Convert the saved screenshot into Base64 format
     with open(image_path, "rb") as image_file:
         encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
         media_data = f"data:image/png;base64,{encoded_string}"
@@ -79,7 +90,6 @@ def send_whatsapp_broadcast(message_text, image_path):
         "Accept": "application/json"
     }
     
-    # Whapi uses 'media' for the image and 'caption' for the text message
     payload = {
         "to": CHANNEL_ID,
         "media": media_data,
@@ -107,29 +117,30 @@ def main():
     for site in sites:
         url = site["url"]
         selector = site["selector"]
-        logging.info(f"Checking {url} ...")
+        logging.info(f"Checking {selector} ...")
+
+        # FIX: Create a unique memory key so Movies and Series don't overwrite each other!
+        memory_key = f"{url}_{selector}"
 
         content = get_page_content(url, selector)
         if not content:
             continue
 
-        current_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
-        saved_hash = memory.get(url)
+        saved_text = memory.get(memory_key, "")
 
-        if current_hash != saved_hash:
-            logging.info(f"🚨 NEW MOVIE DETECTED on {url}! Waking AI...")
+        if content != saved_text:
+            logging.info(f"🚨 NEW CONTENT DETECTED! Waking AI...")
             
-            # 1. Generate the Hype Message
-            hype_message = generate_whatsapp_hype(content)
+            # Pass BOTH the old and new text to Gemini
+            hype_message = generate_whatsapp_hype(saved_text, content)
             
-            # 2. Send to WhatsApp
             send_whatsapp_broadcast(hype_message, "movie.png")
             
-            # 3. Update Memory
-            memory[url] = current_hash
+            # Save the raw text to memory for next time
+            memory[memory_key] = content
             memory_changed = True
         else:
-            logging.info(f"zzz No new movies on {url}.")
+            logging.info(f"zzz No new content on {selector}.")
 
         time.sleep(10) # Cooldown timer
 
