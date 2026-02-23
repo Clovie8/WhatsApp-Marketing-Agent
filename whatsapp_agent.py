@@ -69,8 +69,9 @@ def generate_whatsapp_hype(old_text, new_text, content_type, watch_link):
         📅 *Year:* (e.g., 2024)
         🎙️ *Umusobanuzi:* (The translator name next to the 🎙️ icon)
         
-        4. End the message with a fun sign-off telling them to grab their popcorn and enjoy!
-
+        4. End the message with a fun sign-off telling them to grab their popcorn and enjoy!, and of it below add this text:
+           🚨 *Only On: TheOneMovies.com*
+           
         OLD WEBSITE TEXT:
         {old_text[:2500]}
 
