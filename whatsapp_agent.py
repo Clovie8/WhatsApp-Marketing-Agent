@@ -16,7 +16,7 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 WA_API_TOKEN = os.environ.get("WA_API_TOKEN")
 
 # Replace this with your API Gateway URL and Channel ID
-WA_API_URL = "https://gate.whapi.cloud/messages/text" 
+WA_API_URL = "https://gate.whapi.cloud/messages/image" 
 CHANNEL_ID = "120363405654722379@newsletter" 
 
 SITES_FILE = "sites.json"
@@ -34,6 +34,8 @@ def get_page_content(url, selector):
             
             # Grab the top 3 newest items to give Gemini context
             extracted_text = "\n".join([el.inner_text() for el in elements[:3]])
+            if len(elements) > 0:
+               elements[0].screenshot(path="movie.png")
             return extracted_text
         except Exception as e:
             logging.error(f"Failed to scrape {url}: {e}")
@@ -65,22 +67,31 @@ def generate_whatsapp_hype(raw_text):
         logging.error(f"AI Brain failed: {e}")
         return "🍿 New Content Alert! Head over to TheOneMovies.com right now to see the latest upload!"
 
-def send_whatsapp_broadcast(message_text):
+def send_whatsapp_broadcast(message_text, image_path):
+    # Convert the saved screenshot into Base64 format
+    with open(image_path, "rb") as image_file:
+        encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+        media_data = f"data:image/png;base64,{encoded_string}"
+        
     headers = {
         "Authorization": f"Bearer {WA_API_TOKEN}",
         "Content-Type": "application/json",
         "Accept": "application/json"
     }
+    
+    # Whapi uses 'media' for the image and 'caption' for the text message
     payload = {
         "to": CHANNEL_ID,
-        "body": message_text
+        "media": media_data,
+        "caption": message_text
     }
+    
     try:
         response = requests.post(WA_API_URL, headers=headers, json=payload)
         response.raise_for_status()
-        logging.info("🚀 WhatsApp Channel updated successfully!")
+        logging.info("🚀 Image and text successfully sent to WhatsApp!")
     except Exception as e:
-        logging.error(f"Failed to send WhatsApp message: {e}")
+        logging.error(f"Failed to send image message: {e}")
 
 def main():
     with open(SITES_FILE, "r") as f:
