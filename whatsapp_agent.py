@@ -4,6 +4,7 @@ import time
 import hashlib
 import logging
 import requests
+import base64
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 from playwright_stealth import stealth_sync
