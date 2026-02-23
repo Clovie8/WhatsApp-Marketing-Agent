@@ -30,8 +30,8 @@ def get_page_content(url, selector):
 
             # --- NEW: CLOSE THE WHATSAPP POPUP ---
             try:
-                # Look for common 'X' close button selectors for up to 5 seconds
-                close_button = page.locator("button.close, .close, [aria-label='Close'], [aria-label='close'], .modal-close")
+                # Target the exact class of your specific WhatsApp widget close button
+                close_button = page.locator("button.wa-widget-close")
                 close_button.first.click(timeout=5000)
                 logging.info("🧹 Closed the WhatsApp community popup!")
                 
