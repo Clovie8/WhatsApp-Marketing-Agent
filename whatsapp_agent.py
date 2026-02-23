@@ -47,6 +47,7 @@ def generate_whatsapp_hype(old_text, new_text, content_type, watch_link):
         client = genai.Client(api_key=GEMINI_API_KEY)
         
         # --- THE DYNAMIC PROMPT ---
+        # --- THE DYNAMIC PROMPT ---
         prompt = f"""
         Act as the professional Social Media Manager for the streaming site TheOneMovies.com.
 
@@ -55,14 +56,20 @@ def generate_whatsapp_hype(old_text, new_text, content_type, watch_link):
 
         RULES:
         1. Make the headline HUGE and clearly state if it is a "NEW {content_type.upper()} ADDED!"
-        2. For EACH new addition, format the details EXACTLY like this in a clean list (skip any info you cannot find):
+        2. IMMEDIATELY after the headline, provide these two links exactly as shown:
+        
+        🌐 *Main Website:* https://theonemovies.com
+        📂 *Watch {content_type}s:* {watch_link}
+        
+        3. For EACH new addition, format the details EXACTLY like this in a clean list (skip any info you cannot find):
         
         🎬 *Title:* (Name of the {content_type})
         📺 *Episode:* (ONLY if it is a Series, extract the Season and Episode badge, e.g., 'S1 : Ep2')
+        🎭 *Genre:* (e.g., Action, Horror, Drama)
+        📅 *Year:* (e.g., 2024)
         🎙️ *Umusobanuzi:* (The translator name next to the 🎙️ icon)
         
-        3. End the message by telling them to watch it right now using this EXACT link: {watch_link}
-        Make sure the link is on its own line so it is clickable!
+        4. End the message with a fun sign-off telling them to grab their popcorn and enjoy!
 
         OLD WEBSITE TEXT:
         {old_text[:2500]}
@@ -70,6 +77,7 @@ def generate_whatsapp_hype(old_text, new_text, content_type, watch_link):
         NEW WEBSITE TEXT:
         {new_text[:2500]}
         """
+        
         response = client.models.generate_content(
             model='gemini-2.5-flash',
             contents=prompt,
