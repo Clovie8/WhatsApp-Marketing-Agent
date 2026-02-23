@@ -123,7 +123,7 @@ def main():
             hype_message = generate_whatsapp_hype(content)
             
             # 2. Send to WhatsApp
-            send_whatsapp_broadcast(hype_message)
+            send_whatsapp_broadcast(hype_message, "movie.png")
             
             # 3. Update Memory
             memory[url] = current_hash
