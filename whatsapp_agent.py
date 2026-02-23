@@ -15,8 +15,8 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 WA_API_TOKEN = os.environ.get("WA_API_TOKEN")
 
 # Replace this with your API Gateway URL and Channel ID
-WA_API_URL = "https://your-api-gateway.com/messages/text" 
-CHANNEL_ID = "YOUR_CHANNEL_ID@newsletter" 
+WA_API_URL = "https://gate.whapi.cloud/messages/text" 
+CHANNEL_ID = "120363405654722379@newsletter" 
 
 SITES_FILE = "sites.json"
 MEMORY_FILE = "memory.json"
