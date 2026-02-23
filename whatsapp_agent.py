@@ -14,7 +14,6 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 WA_API_TOKEN = os.environ.get("WA_API_TOKEN")
 
-# Whapi Configuration
 WA_API_URL = "https://gate.whapi.cloud/messages/image" 
 CHANNEL_ID = "120363405654722379@newsletter" 
 
@@ -31,10 +30,8 @@ def get_page_content(url, selector):
             page.wait_for_selector(selector, timeout=15000)
             elements = page.query_selector_all(selector)
             
-            # Grab all the text in the section
             extracted_text = "\n".join([el.inner_text() for el in elements])
             
-            # Take a picture of the entire section so all new movies are visible!
             if len(elements) > 0:
                elements[0].screenshot(path="movie.png")
                
@@ -45,24 +42,29 @@ def get_page_content(url, selector):
         finally:
             browser.close()
 
-def generate_whatsapp_hype(old_text, new_text):
+def generate_whatsapp_hype(old_text, new_text, content_type, watch_link):
     try:
         client = genai.Client(api_key=GEMINI_API_KEY)
-        # --- THE NEW PROMPT ---
+        
+        # --- THE DYNAMIC PROMPT ---
         prompt = f"""
         Act as the professional Social Media Manager for the streaming site TheOneMovies.com.
 
-        I am going to give you the OLD text of the website, and the NEW text of the website.
-        Your job is to compare them, find ALL the completely NEW movies or shows that were just added, and write a WhatsApp broadcast announcing ONLY the new content.
+        I am giving you the OLD text and the NEW text of the {content_type} section of the website.
+        Your job is to compare them, find ALL the completely NEW content that was just added, and write a WhatsApp broadcast announcing ONLY the new additions.
 
-        For EACH new movie/show, you MUST extract and format these details in a clean list:
-        🎬 *Title:* (Name of the movie/show)
-        🎭 *Genre:* (e.g., Action, Horror)
-        📅 *Year:* (e.g., 2026)
-        🎙️ *Umusobanuzi:* (The translator name next to the 🎙️ icon. If not found, skip this line)
-
-        Write a professional, exciting intro. Then list the new content with the details above. Use emojis!
-        End the message telling them to watch it now on TheOneMovies.com.
+        RULES:
+        1. Make the headline HUGE and clearly state if it is a "NEW {content_type.upper()} ADDED!"
+        2. For EACH new addition, format the details EXACTLY like this in a clean list (skip any info you cannot find):
+        
+        🎬 *Title:* (Name of the {content_type})
+        📺 *Episode:* (ONLY if it is a Series, extract the Season and Episode badge, e.g., 'S1 : Ep2')
+        🎭 *Genre:* (e.g., Action, Horror, Drama)
+        📅 *Year:* (e.g., 2024)
+        🎙️ *Umusobanuzi:* (The translator name next to the 🎙️ icon)
+        
+        3. End the message by telling them to watch it right now using this EXACT link: {watch_link}
+        Make sure the link is on its own line so it is clickable!
 
         OLD WEBSITE TEXT:
         {old_text[:2500]}
@@ -77,7 +79,7 @@ def generate_whatsapp_hype(old_text, new_text):
         return response.text.strip()
     except Exception as e:
         logging.error(f"AI Brain failed: {e}")
-        return "🚨 MASSIVE UPLOAD ALERT! 🚨\n\nNew content just dropped with fresh translations! Head over to TheOneMovies.com right now to see the latest uploads!"
+        return f"🚨 MASSIVE UPLOAD ALERT! 🚨\n\nNew {content_type}s just dropped! Head over to {watch_link} right now to see the latest uploads!"
 
 def send_whatsapp_broadcast(message_text, image_path):
     with open(image_path, "rb") as image_file:
@@ -118,8 +120,16 @@ def main():
         url = site["url"]
         selector = site["selector"]
         logging.info(f"Checking {selector} ...")
+        
+        # --- THE SMART LOGIC ---
+        # Detect if we are scraping Movies or Series based on the nth-of-type number
+        if "nth-of-type(1)" in selector:
+            content_type = "Movie"
+            watch_link = "https://theonemovies.com/movies?sort=recent"
+        else:
+            content_type = "Series"
+            watch_link = "https://theonemovies.com/series?sort=recent"
 
-        # FIX: Create a unique memory key so Movies and Series don't overwrite each other!
         memory_key = f"{url}_{selector}"
 
         content = get_page_content(url, selector)
@@ -129,18 +139,17 @@ def main():
         saved_text = memory.get(memory_key, "")
 
         if content != saved_text:
-            logging.info(f"🚨 NEW CONTENT DETECTED! Waking AI...")
+            logging.info(f"🚨 NEW {content_type.upper()} DETECTED! Waking AI...")
             
-            # Pass BOTH the old and new text to Gemini
-            hype_message = generate_whatsapp_hype(saved_text, content)
+            # Pass the Type and the Link to Gemini so it customizes the message
+            hype_message = generate_whatsapp_hype(saved_text, content, content_type, watch_link)
             
             send_whatsapp_broadcast(hype_message, "movie.png")
             
-            # Save the raw text to memory for next time
             memory[memory_key] = content
             memory_changed = True
         else:
-            logging.info(f"zzz No new content on {selector}.")
+            logging.info(f"zzz No new {content_type}s on {selector}.")
 
         time.sleep(10) # Cooldown timer
 
