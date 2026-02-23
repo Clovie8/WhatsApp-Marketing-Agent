@@ -59,8 +59,6 @@ def generate_whatsapp_hype(old_text, new_text, content_type, watch_link):
         
         🎬 *Title:* (Name of the {content_type})
         📺 *Episode:* (ONLY if it is a Series, extract the Season and Episode badge, e.g., 'S1 : Ep2')
-        🎭 *Genre:* (e.g., Action, Horror, Drama)
-        📅 *Year:* (e.g., 2024)
         🎙️ *Umusobanuzi:* (The translator name next to the 🎙️ icon)
         
         3. End the message by telling them to watch it right now using this EXACT link: {watch_link}
