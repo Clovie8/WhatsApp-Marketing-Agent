@@ -58,8 +58,8 @@ def generate_whatsapp_hype(old_text, new_text, content_type, watch_link):
         1. Make the headline HUGE and clearly state if it is a "NEW {content_type.upper()} ADDED!"
         2. IMMEDIATELY after the headline, provide these two links exactly as shown:
         
-        🌐 *Main Website:* https://theonemovies.com
-        📂 *Watch {content_type}s:* {watch_link}
+        🌐 *Visit:* https://theonemovies.com
+        👉 *Watch Recent {content_type}s:* {watch_link}
         
         3. For EACH new addition, format the details EXACTLY like this in a clean list (skip any info you cannot find):
         
