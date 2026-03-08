@@ -1,8 +1,8 @@
 name: WhatsApp Marketing Agent
 
 on:
-  schedule:
-    - cron: '0 * * * *' # Runs exactly once every hour
+#  schedule:
+ #   - cron: '0 * * * *' # Runs exactly once every hour
   workflow_dispatch:
 
 permissions:
