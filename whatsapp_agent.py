@@ -110,9 +110,10 @@ def send_whatsapp_broadcast(message_text, image_path):
         media_data = f"data:image/png;base64,{encoded_string}"
         
     headers = {
-        "Authorization": f"Bearer {WA_API_TOKEN}",
-        "Content-Type": "application/json",
+        # "Authorization": f"Bearer {WA_API_TOKEN}",
+        # "Content-Type": "application/json",
         "Accept": "application/json"
+        "X-Api-Key": WA_API_TOKEN
     }
     
     payload = {
