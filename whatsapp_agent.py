@@ -15,7 +15,7 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 WA_API_TOKEN = os.environ.get("WA_API_TOKEN")
 WAHA_BASE_URL = os.environ.get("WAHA_BASE_URL")
 
-WA_API_URL = f"{WAHA_BASE_URL}/api/sendImage" 
+WA_API_URL = "https://stormlike-subbasal-alona.ngrok-free.dev/api/sendImage" 
 CHANNEL_ID = "120363405654722379@newsletter" 
 
 SITES_FILE = "sites.json"
