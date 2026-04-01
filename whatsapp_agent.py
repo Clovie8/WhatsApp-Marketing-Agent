@@ -13,9 +13,8 @@ from google import genai
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 WA_API_TOKEN = os.environ.get("WA_API_TOKEN")
-WAHA_BASE_URL = os.environ.get("WAHA_BASE_URL")
 
-WA_API_URL = "https://stormlike-subbasal-alona.ngrok-free.dev/api/sendImage" 
+WA_API_URL = "https://gate.whapi.cloud/messages/image" 
 CHANNEL_ID = "120363405654722379@newsletter" 
 
 SITES_FILE = "sites.json"
@@ -110,10 +109,10 @@ def send_whatsapp_broadcast(message_text, image_path):
         media_data = f"data:image/png;base64,{encoded_string}"
         
     headers = {
-        # "Authorization": f"Bearer {WA_API_TOKEN}",
-        # "Content-Type": "application/json",
-        "Accept": "application/json",
-        "X-Api-Key": WA_API_TOKEN
+        "Authorization": f"Bearer {WA_API_TOKEN}",
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+        # "X-Api-Key": WA_API_TOKEN
     }
     
     payload = {
