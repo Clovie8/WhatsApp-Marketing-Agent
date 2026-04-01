@@ -112,7 +112,7 @@ def send_whatsapp_broadcast(message_text, image_path):
     headers = {
         # "Authorization": f"Bearer {WA_API_TOKEN}",
         # "Content-Type": "application/json",
-        "Accept": "application/json"
+        "Accept": "application/json",
         "X-Api-Key": WA_API_TOKEN
     }
     
