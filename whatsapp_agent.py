@@ -148,10 +148,10 @@ def main():
         # Detect if we are scraping Movies or Series based on the nth-of-type number
         if "nth-of-type(1)" in selector:
             content_type = "Movie"
-            watch_link = "https://theonemovies.com/movies?sort=recent"
+            watch_link = "https://theonemovies.com/movies"
         else:
             content_type = "Series"
-            watch_link = "https://theonemovies.com/series?sort=recent"
+            watch_link = "https://theonemovies.com/series"
 
         memory_key = f"{url}_{selector}"
 
