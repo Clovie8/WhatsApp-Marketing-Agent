@@ -20,7 +20,7 @@ CHANNEL_ID = "120363405654722379@newsletter"
 SITES_FILE = "sites.json"
 MEMORY_FILE = "memory.json"
 
-def get_page_content(url, selector):
+def get_page_content(url, selector, click_tab=None): # <-- Added click_tab
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
@@ -30,18 +30,24 @@ def get_page_content(url, selector):
 
             # --- NEW: CLOSE THE WHATSAPP POPUP ---
             try:
-                # Target the exact class of your specific WhatsApp widget close button
                 close_button = page.locator("button.wa-widget-close")
                 close_button.first.click(timeout=5000)
                 logging.info("🧹 Closed the WhatsApp community popup!")
-                
-                # Wait 1 second for the fade-out animation to finish so it isn't in the screenshot
                 page.wait_for_timeout(1000) 
             except Exception:
-                # If the popup isn't there, just ignore it and move on!
                 pass
             # --------------------------------------
             
+            # --- NEW: CLICK THE REACT TAB ---
+            if click_tab:
+                try:
+                    page.locator(click_tab).click(timeout=5000)
+                    logging.info(f"🖱️ Clicked tab: {click_tab}")
+                    page.wait_for_timeout(1500) # Wait for React to swap the cards
+                except Exception as e:
+                    logging.error(f"Failed to click tab {click_tab}: {e}")
+            # --------------------------------------
+
             page.wait_for_selector(selector, timeout=30000)
             elements = page.query_selector_all(selector)
             
@@ -64,7 +70,7 @@ def generate_whatsapp_hype(old_text, new_text, content_type, watch_link):
         # --- THE DYNAMIC PROMPT ---
         # --- THE DYNAMIC PROMPT ---
         prompt = f"""
-        Act as the professional Social Media Manager for the streaming site TheOneMovies.com.
+        Act as the professional Social Media Manager for the streaming site The One Movies.
 
         I am giving you the OLD text and the NEW text of the {content_type} section of the website.
         Your job is to compare them, find ALL the completely NEW content that was just added, and write a WhatsApp broadcast announcing ONLY the new additions.
@@ -85,7 +91,7 @@ def generate_whatsapp_hype(old_text, new_text, content_type, watch_link):
         🎙️ *Umusobanuzi:* (The translator name next to the 🎙️ icon)
         
         4. End the message with a fun sign-off telling them to grab their popcorn and enjoy!, and of it below add this text:
-           🚨 *Only On: TheOneMovies.com*
+            🚨 *Only On: The One Movies*
            
         OLD WEBSITE TEXT:
         {old_text[:2500]}
@@ -144,9 +150,11 @@ def main():
         selector = site["selector"]
         logging.info(f"Checking {selector} ...")
         
+        click_tab = site.get("click_tab") # Extract the click_tab from sites.json
+
         # --- THE SMART LOGIC ---
-        # Detect if we are scraping Movies or Series based on the nth-of-type number
-        if "nth-of-type(1)" in selector:
+        # Detect if we are scraping Movies or Series based on the tab we click
+        if click_tab and "Movies" in click_tab:
             content_type = "Movie"
             watch_link = "https://theonemovies.com/movies"
         else:
@@ -155,7 +163,7 @@ def main():
 
         memory_key = f"{url}_{selector}"
 
-        content = get_page_content(url, selector)
+        content = get_page_content(url, selector, click_tab)
         if not content:
             continue
 
