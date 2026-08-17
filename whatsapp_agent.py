@@ -161,7 +161,7 @@ def main():
             content_type = "Series"
             watch_link = "https://theonemovies.com/series"
 
-        memory_key = f"{url}_{selector}"
+        memory_key = f"{url}_{selector}_{click_tab}"
 
         content = get_page_content(url, selector, click_tab)
         if not content:
